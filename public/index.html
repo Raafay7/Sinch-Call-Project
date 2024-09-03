@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sinch Call</title>
+</head>
+<body>
+    <h1>Make a Call</h1>
+    <label for="phoneNumber">Enter phone number:</label>
+    <input type="text" id="phoneNumber" placeholder="+923482850197">
+    <button onclick="makeCall()">Call</button>
+
+    <script>
+        function makeCall() {
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            
+            if (!phoneNumber) {
+                alert('Please enter a phone number.');
+                return;
+            }
+
+            fetch('/makeCall', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ phoneNumber: phoneNumber })
+            })
+            .then(res => res.json())
+            .then(json => console.log(json))
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
