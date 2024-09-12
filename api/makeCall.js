@@ -15,6 +15,7 @@ module.exports = async (req, res) => {
 
     const basicAuthentication = `${APPLICATION_KEY}:${APPLICATION_SECRET}`;
 
+
     try {
         const response = await fetch("https://calling.api.sinch.com/calling/v1/callouts", {
             method: 'POST',

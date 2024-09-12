@@ -44,7 +44,6 @@ function makeCall() {
     const phoneError = document.getElementById('phoneError');
     const message = document.getElementById('voiceMessageContent').dataset.message || 'Default message if no voice input';
 
-    // Validate the phone number
     if (!phoneNumber) {
         phoneError.textContent = 'Please enter a phone number.';
         return;
@@ -52,10 +51,10 @@ function makeCall() {
         phoneError.textContent = 'Please enter a valid phone number with up to 12 characters, including only numbers and the "+" symbol.';
         return;
     } else {
-        phoneError.textContent = ''; // Clear any previous error
+        phoneError.textContent = '';
     }
 
-    fetch('/api/makeCall', {  // Correct API path for Vercel
+    fetch('/api/makeCall', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -63,9 +62,20 @@ function makeCall() {
         body: JSON.stringify({ phoneNumber, message })
     })
     .then(res => res.json())
-    .then(data => console.log(data))
-    .catch(error => console.error('Error:', error));
+    .then(data => {
+        if (data.error) {
+            phoneError.textContent = 'Error: ' + data.error.message;
+        } else {
+            console.log('Call successful:', data);
+            alert('Call initiated successfully');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        phoneError.textContent = 'An error occurred while trying to make the call.';
+    });
 }
+
 
 // Restrict input to numbers and "+" symbol only
 document.getElementById('phoneNumber').addEventListener('input', function(e) {
