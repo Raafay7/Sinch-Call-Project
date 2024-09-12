@@ -29,7 +29,7 @@ app.use(limiter);
 app.post('/makeCall', [
     body('phoneNumber').isString().matches(/^\+\d{1,12}$/).withMessage('Invalid phone number format. It should start with "+" and contain up to 12 digits.'),
     body('message').notEmpty().withMessage('Message is required.'),
-], (req, res) => {
+], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -44,31 +44,48 @@ app.post('/makeCall', [
 
     const basicAuthentication = APPLICATION_KEY + ":" + APPLICATION_SECRET;
 
-    fetch("https://calling.api.sinch.com/calling/v1/callouts", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Basic ' + Buffer.from(basicAuthentication).toString('base64')
-        },
-        body: JSON.stringify({
-            method: 'ttsCallout',
-            ttsCallout: {
-                cli: SINCH_NUMBER,
-                destination: {
-                    type: 'number',
-                    endpoint: phoneNumber
-                },
-                locale: LOCALE,
-                text: message,  // Use the voice input message
-            }
-        })
-    })
-    .then(response => response.json())
-    .then(data => res.json(data))
-    .catch(error => {
+    try {
+        const response = await fetch("https://calling.api.sinch.com/calling/v1/callouts", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Basic ' + Buffer.from(basicAuthentication).toString('base64')
+            },
+            body: JSON.stringify({
+                method: 'ttsCallout',
+                ttsCallout: {
+                    cli: SINCH_NUMBER,
+                    destination: {
+                        type: 'number',
+                        endpoint: phoneNumber
+                    },
+                    locale: LOCALE,
+                    text: message,  // Use the voice input message
+                }
+            })
+        });
+
+        const contentType = response.headers.get('content-type');
+        let responseData;
+
+        if (contentType && contentType.includes('application/json')) {
+            responseData = await response.json();
+        } else {
+            const text = await response.text();  // Handle non-JSON responses
+            console.error('Unexpected response format:', text);
+            return res.status(response.status).send(text);
+        }
+
+        if (!response.ok) {
+            console.error('API error:', responseData);
+            return res.status(response.status).json(responseData);
+        }
+
+        res.json(responseData);
+    } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
-    });
+    }
 });
 
 // Example route for a homepage or index.html
