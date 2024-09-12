@@ -55,7 +55,7 @@ function makeCall() {
         phoneError.textContent = ''; // Clear any previous error
     }
 
-    fetch('https://call-project-seven.vercel.app/api/makeCall', {
+    fetch('/api/makeCall', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
