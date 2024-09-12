@@ -55,7 +55,7 @@ function makeCall() {
         phoneError.textContent = ''; // Clear any previous error
     }
 
-    fetch('/api/makeCall', {
+    fetch('https://call-project-seven.vercel.app/api/makeCall', {  // Correct API path for Vercel
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -63,9 +63,10 @@ function makeCall() {
         body: JSON.stringify({ phoneNumber, message })
     })
     .then(res => res.json())
-    .then(json => console.log(json))
+    .then(data => console.log(data))
     .catch(error => console.error('Error:', error));
 }
+
 
 // Restrict input to numbers and "+" symbol only
 document.getElementById('phoneNumber').addEventListener('input', function(e) {
