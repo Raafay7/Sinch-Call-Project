@@ -3,34 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sinch Call</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nerko+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <title>Sinch Call with Voice Input</title>
 </head>
 <body>
-    <h1>Make a Call</h1>
-    <label for="phoneNumber">Enter phone number:</label>
-    <input type="text" id="phoneNumber" placeholder="+923482850197">
-    <button onclick="makeCall()">Call</button>
+    <div class="call-container">
+        <h1>Phone Call</h1>
+        <div class="input-group">
+            <input type="text" id="phoneNumber" placeholder="Enter phone number" maxlength="13">
+            <p class="error" id="phoneError"></p>
+        </div>
+        <button class="button record" onclick="startVoiceInput()">🎤 Record Message</button>
+        <button class="button call" onclick="makeCall()">📞 Call</button>
 
-    <script>
-        function makeCall() {
-            const phoneNumber = document.getElementById('phoneNumber').value;
-            
-            if (!phoneNumber) {
-                alert('Please enter a phone number.');
-                return;
-            }
+        <div class="message-container" id="messageContainer" style="display: none;">
+            <div class="message-title">Recorded Message:</div>
+            <div class="message-content" id="voiceMessageContent"></div>
+        </div>
+    </div>
 
-            fetch('/makeCall', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ phoneNumber: phoneNumber })
-            })
-            .then(res => res.json())
-            .then(json => console.log(json))
-            .catch(error => console.error('Error:', error));
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
