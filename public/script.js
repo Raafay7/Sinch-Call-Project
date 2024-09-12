@@ -55,7 +55,7 @@ function makeCall() {
         phoneError.textContent = ''; // Clear any previous error
     }
 
-    fetch('/makeCall', {  // Correct API path for Vercel
+    fetch('/api/makeCall', {  // Correct API path for Vercel
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
