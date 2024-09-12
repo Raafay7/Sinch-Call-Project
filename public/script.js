@@ -67,7 +67,6 @@ function makeCall() {
     .catch(error => console.error('Error:', error));
 }
 
-
 // Restrict input to numbers and "+" symbol only
 document.getElementById('phoneNumber').addEventListener('input', function(e) {
     this.value = this.value.replace(/[^\d+]/g, '');

@@ -1,41 +1,50 @@
-async function makeCall() {
-  const phoneNumber = document.getElementById('phoneNumber').value.trim();
-  const phoneError = document.getElementById('phoneError');
-  const message = document.getElementById('voiceMessageContent').dataset.message || 'Default message if no voice input';
+const fetch = require('cross-fetch');
 
-  // Validate the phone number
-  if (!phoneNumber) {
-      phoneError.textContent = 'Please enter a phone number.';
-      return;
-  } else if (!isValidPhoneNumber(phoneNumber)) {
-      phoneError.textContent = 'Please enter a valid phone number with up to 12 characters, including only numbers and the "+" symbol.';
-      return;
-  } else {
-      phoneError.textContent = ''; // Clear any previous error
-  }
+module.exports = async (req, res) => {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed' });
+    }
 
-  try {
-      const response = await fetch('/api/makeCall', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ phoneNumber, message })
-      });
+    const { phoneNumber, message } = req.body;
 
-      // Check if response is OK (status in the range 200-299)
-      if (!response.ok) {
-          const errorText = await response.text(); // Get response as text for debugging
-          console.error('Error response:', errorText);
-          throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+    // Sinch credentials from environment variables
+    const APPLICATION_KEY = process.env.SINCH_APP_KEY;
+    const APPLICATION_SECRET = process.env.SINCH_APP_SECRET;
+    const SINCH_NUMBER = process.env.SINCH_NUMBER;
+    const LOCALE = process.env.LOCALE;
 
-      // Attempt to parse the response as JSON
-      const data = await response.json();
-      console.log('Response data:', data);
-  } catch (error) {
-      // Handle the error
-      console.error('Error making the call:', error);
-      alert('An error occurred: ' + error.message);
-  }
-}
+    const basicAuthentication = `${APPLICATION_KEY}:${APPLICATION_SECRET}`;
+
+    try {
+        const response = await fetch("https://calling.api.sinch.com/calling/v1/callouts", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Basic ' + Buffer.from(basicAuthentication).toString('base64')
+            },
+            body: JSON.stringify({
+                method: 'ttsCallout',
+                ttsCallout: {
+                    cli: SINCH_NUMBER,
+                    destination: {
+                        type: 'number',
+                        endpoint: phoneNumber
+                    },
+                    locale: LOCALE,
+                    text: message
+                }
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            return res.status(response.status).json({ error: data });
+        }
+
+        res.status(200).json(data);
+    } catch (error) {
+        console.error('Error in /makeCall:', error.message);
+        res.status(500).json({ error: 'Internal Server Error', details: error.message });
+    }
+};
