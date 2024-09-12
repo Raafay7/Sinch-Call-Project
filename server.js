@@ -65,28 +65,31 @@ app.post('/makeCall', [
             })
         });
 
-        const contentType = response.headers.get('content-type');
-        let responseData;
-
-        if (contentType && contentType.includes('application/json')) {
-            responseData = await response.json();
-        } else {
-            const text = await response.text();  // Handle non-JSON responses
-            console.error('Unexpected response format:', text);
-            return res.status(response.status).send(text);
-        }
-
+        // Check if response is OK (status in range 200-299)
         if (!response.ok) {
-            console.error('API error:', responseData);
-            return res.status(response.status).json(responseData);
+            // Log the full response text for debugging
+            const responseText = await response.text();
+            console.error('API Response Error:', responseText);
+            return res.status(response.status).send(responseText);
         }
 
-        res.json(responseData);
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            const responseData = await response.json();
+            res.json(responseData);
+        } else {
+            // Log unexpected response format
+            const responseText = await response.text();
+            console.error('Unexpected response format:', responseText);
+            res.status(response.status).send(responseText);
+        }
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
 
 // Example route for a homepage or index.html
 app.get('/', (req, res) => {
