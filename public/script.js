@@ -1,3 +1,28 @@
+document.addEventListener('deviceready', function () {
+    var permissions = cordova.plugins.permissions;
+    permissions.hasPermission(permissions.RECORD_AUDIO, function (status) {
+        if (status.hasPermission) {
+            console.log("Microphone permission already granted");
+            // You can now proceed to use the microphone
+            startVoiceInput();
+        } else {
+            console.log("Requesting microphone permission");
+            permissions.requestPermission(permissions.RECORD_AUDIO, function (status) {
+                if (status.hasPermission) {
+                    console.log("Microphone permission granted");
+                    // Now you can use the microphone
+                    startVoiceInput();
+                } else {
+                    console.log("Microphone permission denied");
+                    alert("Microphone permission is required for voice input.");
+                }
+            }, function () {
+                console.error("Permission request failed");
+            });
+        }
+    });
+}, false);
+
 function startVoiceInput() {
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.lang = 'en-US';
