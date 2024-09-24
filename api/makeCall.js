@@ -1,4 +1,4 @@
-const fetch = require('cross-fetch');
+const twilio = require('twilio');
 
 module.exports = async (req, res) => {
     if (req.method !== 'POST') {
@@ -7,43 +7,21 @@ module.exports = async (req, res) => {
 
     const { phoneNumber, message } = req.body;
 
-    // Sinch credentials from environment variables
-    const APPLICATION_KEY = process.env.SINCH_APP_KEY;
-    const APPLICATION_SECRET = process.env.SINCH_APP_SECRET;
-    const SINCH_NUMBER = process.env.SINCH_NUMBER;
-    const LOCALE = process.env.LOCALE;
+    // Twilio credentials from environment variables
+    const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
+    const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
+    const TWILIO_NUMBER = process.env.TWILIO_NUMBER;
 
-    const basicAuthentication = `${APPLICATION_KEY}:${APPLICATION_SECRET}`;
-
+    const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 
     try {
-        const response = await fetch("https://calling.api.sinch.com/calling/v1/callouts", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: 'Basic ' + Buffer.from(basicAuthentication).toString('base64')
-            },
-            body: JSON.stringify({
-                method: 'ttsCallout',
-                ttsCallout: {
-                    cli: SINCH_NUMBER,
-                    destination: {
-                        type: 'number',
-                        endpoint: phoneNumber
-                    },
-                    locale: LOCALE,
-                    text: message
-                }
-            })
+        const call = await client.calls.create({
+            twiml: `<Response><Say>${message}</Say></Response>`, // TTS message
+            to: phoneNumber,
+            from: TWILIO_NUMBER
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            return res.status(response.status).json({ error: data });
-        }
-
-        res.status(200).json(data);
+        res.status(200).json({ callSid: call.sid });
     } catch (error) {
         console.error('Error in /makeCall:', error.message);
         res.status(500).json({ error: 'Internal Server Error', details: error.message });
